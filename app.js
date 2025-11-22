@@ -12,9 +12,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Test route
 app.get('/', (req, res) => {
