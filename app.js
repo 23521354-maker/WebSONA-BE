@@ -13,10 +13,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const productRoutes = require('./routes/productRoutes');
 
 // Routes
+console.log('Đang đăng ký routes...');
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/products', productRoutes);
+console.log('Routes đã đăng ký: /api/auth, /api/orders, /api/products');
 
 // Test route
 app.get('/', (req, res) => {
