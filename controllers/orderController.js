@@ -1,4 +1,79 @@
 const Order = require('../models/Order');
+const sequelize = require('../config/database');
+
+// Tạo đơn hàng mới
+const createOrder = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  
+  try {
+    const userId = req.user.ID_U;
+    const { items, customerInfo, paymentMethod, note } = req.body;
+    
+    if (!items || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Giỏ hàng trống'
+      });
+    }
+
+    // Tính tổng tiền
+    let tongTien = 0;
+    for (const item of items) {
+      tongTien += item.price * item.qty;
+    }
+
+    // Tạo mã đơn hàng
+    const orderCode = 'DH' + Date.now();
+
+    // Tạo đơn hàng
+    const order = await Order.create({
+      ID_DH: orderCode,
+      ID_U: userId,
+      NgayDat: new Date(),
+      TrangThaiDonHang: 'cho_xac_nhan',
+      TongTienHang: tongTien,
+      PhiVanChuyen: 0,
+      TongTienThanhToan: tongTien,
+      PhuongThucThanhToan: paymentMethod || 'bank_transfer',
+      HoTenNhan: customerInfo?.name || '',
+      SDTNhan: customerInfo?.phone || '',
+      DiaChiGiaoHang: customerInfo?.address || '',
+      GhiChu: note || ''
+    }, { transaction });
+
+    // Lưu chi tiết đơn hàng
+    for (const item of items) {
+      await sequelize.query(`
+        INSERT INTO chitietdonhang (ID_DH, ID_SP, SoLuong, DonGia, ThanhTien)
+        VALUES (?, ?, ?, ?, ?)
+      `, {
+        replacements: [orderCode, item.id, item.qty, item.price, item.price * item.qty],
+        transaction
+      });
+    }
+
+    await transaction.commit();
+
+    res.json({
+      success: true,
+      message: 'Đặt hàng thành công',
+      orderId: orderCode
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Lỗi khi tạo đơn hàng:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      sql: error.sql
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi tạo đơn hàng: ' + error.message
+    });
+  }
+};
 
 // Lấy danh sách đơn hàng của người dùng
 const getUserOrders = async (req, res) => {
@@ -108,6 +183,7 @@ const getOrderDetail = async (req, res) => {
 };
 
 module.exports = {
+  createOrder,
   getUserOrders,
   getOrderDetail
 };

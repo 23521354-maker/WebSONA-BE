@@ -57,7 +57,7 @@ http://localhost:3000/api
 **Request Body:**
 ```json
 {
-  "username": "nguyenvana@gmail.com",  // có thể dùng email, sđt hoặc tên tài khoản
+  "username": "nguyenvana@gmail.com",  
   "password": "password123"
 }
 ```

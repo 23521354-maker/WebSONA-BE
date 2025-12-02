@@ -18,6 +18,11 @@ const authMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
     
     // Gắn thông tin user vào request
+    req.user = {
+      ID_U: decoded.userId,
+      email: decoded.email,
+      vaiTro: decoded.vaiTro
+    };
     req.userId = decoded.userId;
     req.userEmail = decoded.email;
     req.userRole = decoded.vaiTro;
